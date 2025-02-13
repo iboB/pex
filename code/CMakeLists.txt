@@ -8,14 +8,23 @@ add_library(pex::pex ALIAS pex)
 target_include_directories(pex INTERFACE .)
 
 CPMAddPackage(gh:iboB/splat@1.3.3)
+CPMAddPackage(gh:iboB/itlib@1.11.5)
 
-target_link_libraries(pex PUBLIC
-    splat::splat
-    Boost::asio
+target_link_libraries(pex
+    PUBLIC
+        splat::splat
+        itlib::itlib
+    PRIVATE
+        Boost::asio
 )
 
 target_sources(pex PRIVATE
     pex/api.h
+
+    pex/context.hpp
+
+    pex/pex.cpp
+
     pex/mylib.h
     pex/mylib.c
     pex/mylib.hpp
