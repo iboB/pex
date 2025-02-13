@@ -5,15 +5,12 @@
 #include "api.h"
 #include "strand.hpp"
 #include "ufunc.hpp"
+#include "timer_ptr.hpp"
 #include <chrono>
-#include <memory>
 #include <cstdint>
 #include <system_error>
 
 namespace pex {
-
-class timer;
-using timer_ptr = std::unique_ptr<timer>;
 
 class PEX_API timer {
 public:
