@@ -18,6 +18,7 @@ int main() {
     timer.expires_after(1s);
     timer.async_wait([](const std::error_code& ec) {
         std::cout << ec.category().name() << std::endl;
+        std::cout << ec.value() << std::endl;
         std::cout << ec.message() << std::endl;
     });
     timer.cancel();
