@@ -92,15 +92,25 @@ public:
 
     explicit timer_impl(strand_impl& s) : m_timer(s.strand) {}
 
-    virtual void expire_after(std::chrono::milliseconds timeFromNow) override {
-        m_timer.expires_after(timeFromNow);
+    virtual size_t expire_after(duration timeFromNow) override {
+        return m_timer.expires_after(timeFromNow);
+    }
+    virtual size_t expire_at(time_point t) override {
+        return m_timer.expires_at(t);
+    }
+    virtual size_t expire_never() override {
+        return m_timer.expires_at(time_point::max());
     }
 
-    virtual void cancel() override {
-        m_timer.cancel();
+    virtual size_t cancel() override {
+        return m_timer.cancel();
     }
-    virtual void cancel_one() override {
-        m_timer.cancel_one();
+    virtual size_t cancel_one() override {
+        return m_timer.cancel_one();
+    }
+
+    virtual time_point expiry() const override {
+        return m_timer.expiry();
     }
 
     virtual void add_wait_cb(cb_t cb) override {
