@@ -30,7 +30,7 @@ public:
     using cb_t = ufunc<void(const std::error_code& cancelled)>;
     virtual void add_wait_cb(cb_t cb) = 0;
 
-    timer_ptr create(const strand& s);
+    static timer_ptr create(const strand& s);
 private:
     // sealed interface
     timer();
