@@ -6,8 +6,9 @@
 #include "strand.hpp"
 #include "ufunc.hpp"
 #include <chrono>
-#include <cstdint>
 #include <memory>
+#include <cstdint>
+#include <system_error>
 
 namespace pex {
 
@@ -26,8 +27,8 @@ public:
     virtual void cancel() = 0;
     virtual void cancel_one() = 0;
 
-    using cb_t = ufunc<void(bool cancelled)>;
-    virtual void addCallback(cb_t cb) = 0;
+    using cb_t = ufunc<void(const std::error_code& cancelled)>;
+    virtual void add_wait_cb(cb_t cb) = 0;
 
     timer_ptr create(const strand& s);
 private:

@@ -5,8 +5,11 @@
 #include "context_work_guard.hpp"
 #include "post.hpp"
 #include "timer.hpp"
+
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/strand.hpp>
+#include <boost/asio/steady_timer.hpp>
+
 #include <itlib/make_ptr.hpp>
 
 namespace asio = boost::asio;
@@ -78,6 +81,35 @@ void post(const strand& s, ufunc<void()> f) {
 
 void post(context& ctx, ufunc<void()> f) {
     asio::post(ctx._impl().ctx, std::move(f));
+}
+
+timer::timer() = default;
+timer::~timer() = default; // export vtable
+
+struct timer_impl final : public timer {
+public:
+    asio::steady_timer m_timer;
+
+    explicit timer_impl(strand_impl& s) : m_timer(s.strand) {}
+
+    virtual void expire_after(std::chrono::milliseconds timeFromNow) override {
+        m_timer.expires_after(timeFromNow);
+    }
+
+    virtual void cancel() override {
+        m_timer.cancel();
+    }
+    virtual void cancel_one() override {
+        m_timer.cancel_one();
+    }
+
+    virtual void add_wait_cb(cb_t cb) override {
+        m_timer.async_wait(std::move(cb));
+    }
+};
+
+timer_ptr timer::create(const strand& s) {
+    return std::make_unique<timer_impl>(*s);
 }
 
 } // namespace pex
