@@ -5,7 +5,7 @@
 #include "api.h"
 
 namespace mylib {
-class MYLIB_API add {
+class PEX_API add {
     int m_bias;
 public:
     add(int bias);

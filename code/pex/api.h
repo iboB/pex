@@ -4,12 +4,12 @@
 #pragma once
 #include <splat/symbol_export.h>
 
-#if MYLIB_SHARED
-#   if BUILDING_MYLIB
-#       define MYLIB_API SYMBOL_EXPORT
+#if PEX_SHARED
+#   if BUILDING_PEX
+#       define PEX_API SYMBOL_EXPORT
 #   else
-#       define MYLIB_API SYMBOL_IMPORT
+#       define PEX_API SYMBOL_IMPORT
 #   endif
 #else
-#   define MYLIB_API
+#   define PEX_API
 #endif

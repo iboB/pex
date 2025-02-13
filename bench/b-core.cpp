@@ -6,7 +6,7 @@
 
 #include <picobench/picobench.hpp>
 
-#include <mylib/mylib.hpp>
+#include <pex/mylib.hpp>
 
 constexpr uint32_t seed = 42;
 

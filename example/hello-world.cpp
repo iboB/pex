@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 //
 #include <iostream>
-#include <mylib/mylib.hpp>
+#include <pex/mylib.hpp>
 
 int main() {
     std::cout << "hello " << mylib::add{4}(1, 10) << '\n';

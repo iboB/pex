@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-MYLIB_API int mylib_add(int bias, int a, int b);
+PEX_API int mylib_add(int bias, int a, int b);
 
 #if defined(__cplusplus)
 }

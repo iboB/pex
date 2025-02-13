@@ -3,21 +3,22 @@
 #
 include(icm_add_lib)
 
-icm_add_lib(mylib MYLIB)
-add_library(mylib::mylib ALIAS mylib)
-target_include_directories(mylib INTERFACE .)
+icm_add_lib(pex PEX)
+add_library(pex::pex ALIAS pex)
+target_include_directories(pex INTERFACE .)
 
 CPMAddPackage(gh:iboB/splat@1.3.3)
 
-target_link_libraries(mylib PUBLIC
+target_link_libraries(pex PUBLIC
     splat::splat
+    Boost::asio
 )
 
-target_sources(mylib PRIVATE
-    mylib/api.h
-    mylib/mylib.h
-    mylib/mylib.c
-    mylib/mylib.hpp
-    mylib/mylib.cpp
+target_sources(pex PRIVATE
+    pex/api.h
+    pex/mylib.h
+    pex/mylib.c
+    pex/mylib.hpp
+    pex/mylib.cpp
 )
 

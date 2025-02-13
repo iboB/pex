@@ -1,7 +1,7 @@
 // Copyright (c) Borislav Stanimirov
 // SPDX-License-Identifier: MIT
 //
-#include <mylib/mylib.h>
+#include <pex/mylib.h>
 
 #include <doctest/doctest.h>
 

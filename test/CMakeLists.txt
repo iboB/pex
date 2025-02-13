@@ -16,13 +16,13 @@ target_link_libraries(doctest-unity PUBLIC
     doctest::headers
 )
 
-macro(mylib_x_test test)
+macro(pex_x_test test)
     icm_add_test(
-        NAME mylib-x-${test}
-        TARGET test-mylib-x-${test}
+        NAME pex-x-${test}
+        TARGET test-pex-x-${test}
         LIBRARIES
             doctest-unity
-            mylib::mylib
+            pex::pex
         SOURCES
             x-${test}.c
             x-${test}.cpp
@@ -30,23 +30,23 @@ macro(mylib_x_test test)
     )
 endmacro()
 
-macro(mylib_c_test test)
+macro(pex_c_test test)
     icm_add_test(
-        NAME mylib-c-${test}
-        TARGET test-mylib-c-${test}
+        NAME pex-c-${test}
+        TARGET test-pex-c-${test}
         LIBRARIES
             unity::framework
-            mylib::mylib
+            pex::pex
         SOURCES
             ${ARGN}
         FOLDER test
     )
 endmacro()
 
-macro(mylib_cxx_test test)
-    add_doctest_lib_test(${test} mylib ${ARGN})
+macro(pex_cxx_test test)
+    add_doctest_lib_test(${test} pex ${ARGN})
 endmacro()
 
-mylib_x_test(xtest)
-mylib_c_test(ctest t-ctest.c)
-mylib_cxx_test(cxxtest t-cxxtest.cpp)
+pex_x_test(xtest)
+pex_c_test(ctest t-ctest.c)
+pex_cxx_test(cxxtest t-cxxtest.cpp)
