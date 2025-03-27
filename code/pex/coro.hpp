@@ -21,7 +21,6 @@ struct ret_promise_helper {
         auto& self = static_cast<Self&>(*this);
         assert(self.m_result); // can't return value without a result to store it in
         *self.m_result = std::move(value);
-        self.pop_coro();
     }
 };
 template <typename Self>
@@ -32,7 +31,6 @@ struct ret_promise_helper<void, Self> {
             // m_result may be null in the root coroutine if it's void
             *self.m_result = {};
         }
-        self.pop_coro();
     }
 };
 
@@ -84,14 +82,14 @@ struct coro {
         }
 
         std::suspend_always initial_suspend() noexcept { return {}; }
-        std::suspend_never final_suspend() noexcept { return {}; }
-
-        void pop_coro() noexcept {
+        std::suspend_never final_suspend() noexcept {
             m_state->set_coro(m_prev);
 
             if (m_prev) {
                 m_state->post_resume();
             }
+
+            return {};
         }
 
         void unhandled_exception() noexcept {
@@ -99,7 +97,6 @@ struct coro {
                 std::terminate(); // can't throw exceptions from the top coroutine
             }
             *m_result = itlib::unexpected(std::current_exception());
-            pop_coro();
         }
 
         // this doesn't need to be a shared pointer
