@@ -47,8 +47,12 @@ context::context()
 
 context::~context() = default;
 
-void context::run() {
-    m_impl->ctx.run();
+size_t context::run() {
+    return m_impl->ctx.run();
+}
+
+size_t context::poll() {
+    return m_impl->ctx.poll();
 }
 
 void context::stop() {
@@ -75,11 +79,11 @@ strand make_strand(context& ctx) {
     return ctx.make_strand();
 }
 
-void post(const strand& s, ufunc<void()> f) {
+void post(const strand& s, task f) {
     asio::post(s->strand, std::move(f));
 }
 
-void post(context& ctx, ufunc<void()> f) {
+void post(context& ctx, task f) {
     asio::post(ctx._impl().ctx, std::move(f));
 }
 
@@ -113,7 +117,7 @@ public:
         return m_timer.expiry();
     }
 
-    virtual void add_wait_cb(cb_t cb) override {
+    virtual void add_wait_cb(wait_func cb) override {
         m_timer.async_wait(std::move(cb));
     }
 };

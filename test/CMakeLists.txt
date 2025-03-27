@@ -43,10 +43,6 @@ macro(pex_c_test test)
     )
 endmacro()
 
-macro(pex_cxx_test test)
+macro(pex_test test)
     add_doctest_lib_test(${test} pex ${ARGN})
 endmacro()
-
-pex_x_test(xtest)
-pex_c_test(ctest t-ctest.c)
-pex_cxx_test(cxxtest t-cxxtest.cpp)

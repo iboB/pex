@@ -3,14 +3,14 @@
 //
 #pragma once
 #include "api.h"
-#include "ufunc.hpp"
+#include "task.hpp"
 #include "strand.hpp"
 
 namespace pex {
 
-PEX_API void post(const strand& s, ufunc<void()> f);
+PEX_API void post(const strand& s, task f);
 
 class context;
-PEX_API void post(context& ctx, ufunc<void()> f);
+PEX_API void post(context& ctx, task f);
 
 } // namespace pex

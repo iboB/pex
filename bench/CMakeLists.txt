@@ -17,7 +17,3 @@ macro(pex_benchmark name)
     )
     set_target_properties(run-${tgt} PROPERTIES FOLDER bench)
 endmacro()
-
-pex_benchmark(core
-    b-core.cpp
-)

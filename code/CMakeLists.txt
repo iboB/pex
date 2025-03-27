@@ -23,11 +23,6 @@ target_sources(pex PRIVATE
 
     pex/context.hpp
 
-    pex/pex.cpp
-
-    pex/mylib.h
-    pex/mylib.c
-    pex/mylib.hpp
-    pex/mylib.cpp
+    pex/pex-asio-impl.cpp
 )
 
