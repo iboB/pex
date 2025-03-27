@@ -45,11 +45,8 @@ class coro_state {
 
     template <typename Ret>
     friend struct coro;
-public:
-    coro_state(strand executor)
-        : m_executor(std::move(executor))
-    {}
 
+    friend void co_spawn(std::shared_ptr<coro_state> state, coro<void> c);
     std::coroutine_handle<> set_coro(std::coroutine_handle<> c) noexcept {
         return std::exchange(m_current_coro, c);
     }
@@ -59,6 +56,10 @@ public:
             m_current_coro.resume();
         });
     }
+public:
+    coro_state(strand executor)
+        : m_executor(std::move(executor))
+    {}
 
     const strand& get_executor() const {
         return m_executor;
