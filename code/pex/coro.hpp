@@ -84,14 +84,37 @@ struct coro {
         }
 
         std::suspend_always initial_suspend() noexcept { return {}; }
-        std::suspend_never final_suspend() noexcept { return {}; }
+
+        struct final_awaitable {
+            handle h;
+
+            bool await_ready() const noexcept { return !h; }
+            std::coroutine_handle<> await_suspend(handle) noexcept {
+                return h.promise().m_prev;
+            }
+            void await_resume() noexcept { assert(!h); }
+
+            ~final_awaitable() {
+                if (h) {
+                    h.destroy();
+                }
+            }
+        };
+        final_awaitable final_suspend() noexcept {
+            if (m_prev) {
+                return {handle::from_promise(*this)};
+            }
+            else {
+                return {};
+            }
+        }
 
         void pop_coro() noexcept {
             m_state->set_coro(m_prev);
 
-            if (m_prev) {
+            /*if (m_prev) {
                 m_state->post_resume();
-            }
+            }*/
         }
 
         void unhandled_exception() noexcept {
