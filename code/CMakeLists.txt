@@ -24,5 +24,6 @@ target_sources(pex PRIVATE
     pex/context.hpp
 
     pex/pex-asio-impl.cpp
+    pex/thread_name.cpp
 )
 
