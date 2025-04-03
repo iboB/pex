@@ -54,4 +54,5 @@ endmacro()
 
 pex_test(multi_thread_runner)
 pex_test(coro)
+pex_test(generator)
 pex_cxx_test(coro-stack t-coro-stack.cpp LIBRARIES b_stacktrace::b_stacktrace)

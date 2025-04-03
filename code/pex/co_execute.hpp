@@ -10,9 +10,9 @@ namespace pex {
 
 template <typename T>
 T co_execute(coro<T> c) {
-    using result_t = typename coro<T>::coro_result;
+    using result_type = typename coro<T>::result_type;
 
-    result_t result = itlib::unexpected();
+    result_type result = itlib::unexpected();
 
     context ctx;
     context_work_guard guard(ctx);
