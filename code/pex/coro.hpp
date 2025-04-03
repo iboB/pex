@@ -37,38 +37,6 @@ struct ret_promise_helper<void, Self> {
 } // namespace impl
 
 template <typename Ret>
-struct coro;
-
-class coro_state {
-    strand m_executor;
-    std::coroutine_handle<> m_current_coro;
-
-    template <typename Ret>
-    friend struct coro;
-
-    friend void co_spawn(std::shared_ptr<coro_state> state, coro<void> c);
-    std::coroutine_handle<> set_coro(std::coroutine_handle<> c) noexcept {
-        return std::exchange(m_current_coro, c);
-    }
-
-    void post_resume() {
-        post(m_executor, [this] {
-            m_current_coro.resume();
-        });
-    }
-public:
-    coro_state(strand executor)
-        : m_executor(std::move(executor))
-    {}
-
-    const strand& get_executor() const {
-        return m_executor;
-    }
-};
-
-using coro_state_ptr = std::shared_ptr<coro_state>;
-
-template <typename Ret>
 struct coro {
     using return_type = Ret;
 
@@ -100,7 +68,6 @@ struct coro {
                 }
                 void await_resume() noexcept {}
             };
-            m_state->set_coro(m_prev); // fixup new top in the state
             return final_awaitable{m_prev};
         }
 
@@ -111,11 +78,7 @@ struct coro {
             *m_result = itlib::unexpected(std::current_exception());
         }
 
-        // this doesn't need to be a shared pointer
-        // it could be a unique pointer in the root coroutine and a raw pointer in the ones below
-        // however we would need to create different promise types for the root and the rest and
-        // we decide to keep it simple (for now)
-        coro_state_ptr m_state;
+        strand m_executor;
         std::coroutine_handle<> m_prev = nullptr;
 
         // points to the result in the awaitable which is on the stack
@@ -155,12 +118,9 @@ struct coro {
 
         template <typename CallerPromise>
         std::coroutine_handle<> await_suspend(std::coroutine_handle<CallerPromise> caller) noexcept {
-            auto state = caller.promise().m_state;
             hcoro.promise().m_result = &result;
-            hcoro.promise().m_state = state;
+            hcoro.promise().m_executor = caller.promise().m_executor;
             hcoro.promise().m_prev = caller;
-            [[maybe_unused]] auto prev_coro = state->set_coro(hcoro);
-            assert(prev_coro == caller);
             return hcoro;
         }
 
@@ -190,28 +150,24 @@ private:
 // awaitable to get the coroutine's executor from the coroutine itself
 // co_await executor{}
 struct executor {
-    strand m_strand;
+    strand m_executor;
 
     // awaitable interface
     bool await_ready() const noexcept { return false; }
     template <typename PromiseType>
     bool await_suspend(std::coroutine_handle<PromiseType> h) noexcept {
-        m_strand = h.promise().m_state->get_executor();
+        m_executor = h.promise().m_executor;
         return false;
     }
-    strand await_resume() noexcept { return std::move(m_strand); }
+    strand await_resume() noexcept { return std::move(m_executor); }
 };
 
-inline void co_spawn(coro_state_ptr state, coro<void> c) {
-    auto h = c.take_handle();
-    state->set_coro(h);
-    h.promise().m_state = state;
-    state->post_resume();
-}
-
 inline void co_spawn(strand ex, coro<void> c) {
-    auto state = std::make_shared<coro_state>(std::move(ex));
-    co_spawn(std::move(state), std::move(c));
+    auto h = c.take_handle();
+    h.promise().m_executor = ex;
+    post(ex, [h] {
+        h.resume();
+    });
 }
 
 inline void co_spawn(context& ctx, coro<void> c) {
