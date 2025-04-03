@@ -167,7 +167,7 @@ struct [[nodiscard]] coro {
         }
     };
 
-    result_awaitable safe_result() {
+    [[nodiscard]] result_awaitable safe_result() {
         return {m_handle};
     }
 
