@@ -3,6 +3,7 @@
 #
 CPMAddPackage(gh:iboB/doctest-util@0.1.3)
 CPMAddPackage(gh:ThrowTheSwitch/Unity@2.6.1)
+CPMAddPackage(gh:iboB/b_stacktrace@0.23)
 set_target_properties(doctest PROPERTIES FOLDER test)
 set_target_properties(doctest-main PROPERTIES FOLDER test)
 set_target_properties(unity PROPERTIES FOLDER test)
@@ -53,3 +54,4 @@ endmacro()
 
 pex_test(multi_thread_runner)
 pex_test(coro)
+pex_cxx_test(coro-stack t-coro-stack.cpp LIBRARIES b_stacktrace::b_stacktrace)

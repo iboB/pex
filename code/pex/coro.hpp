@@ -111,7 +111,7 @@ struct coro {
         awaitable(handle h) noexcept : hcoro(h) {}
 
         // instead of making optional of expected, we can use the value error=nullptr to indicate that
-        // the result is empty (hacky, but works)
+        // the result is empty (hacky, but works and saves indirections)
         coro_result result = itlib::unexpected();
 
         bool await_ready() const noexcept { return false; }

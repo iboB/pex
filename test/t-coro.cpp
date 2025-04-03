@@ -88,4 +88,3 @@ TEST_CASE("exceptions") {
     co_spawn(ctx, test_exceptions());
     ctx.run();
 }
-
