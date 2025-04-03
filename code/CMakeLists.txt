@@ -8,7 +8,7 @@ add_library(pex::pex ALIAS pex)
 target_include_directories(pex INTERFACE .)
 
 CPMAddPackage(gh:iboB/splat@1.3.3)
-CPMAddPackage(gh:iboB/itlib@1.11.5)
+CPMAddPackage(gh:iboB/itlib@1.11.6)
 
 target_link_libraries(pex
     PUBLIC
