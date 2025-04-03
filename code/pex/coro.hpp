@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: MIT
 //
 #pragma once
-#include "post.hpp"
+#include "strand.hpp"
 #include <itlib/expected.hpp>
 #include <coroutine>
 #include <stdexcept>
 #include <cassert>
-#include <memory>
 
 namespace pex {
 
@@ -161,17 +160,5 @@ struct executor {
     }
     strand await_resume() noexcept { return std::move(m_executor); }
 };
-
-inline void co_spawn(strand ex, coro<void> c) {
-    auto h = c.take_handle();
-    h.promise().m_executor = ex;
-    post(ex, [h] {
-        h.resume();
-    });
-}
-
-inline void co_spawn(context& ctx, coro<void> c) {
-    co_spawn(make_strand(ctx), std::move(c));
-}
 
 } // namespace pex

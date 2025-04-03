@@ -5,6 +5,7 @@
 #include <pex/timer_wobj.hpp>
 #include <pex/strand_wobj.hpp>
 #include <pex/context.hpp>
+#include <pex/co_spawn.hpp>
 #include <doctest/doctest.h>
 
 using namespace pex;
