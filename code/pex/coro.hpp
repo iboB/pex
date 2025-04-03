@@ -49,7 +49,7 @@ struct opt_transfer {
 } // namespace impl
 
 template <typename Ret, typename Gen = std::nullptr_t>
-struct coro {
+struct [[nodiscard]] coro {
     using return_type = Ret;
 
     struct promise_type;
@@ -185,7 +185,7 @@ struct coro {
             return hcoro;
         }
 
-        itlib::expected<Gen, Ret> await_resume() noexcept {
+        itlib::expected<Gen, Ret> await_resume() {
             if (gen) {
                 return std::move(gen).value();
             }
@@ -203,8 +203,12 @@ struct coro {
         }
     };
 
-    gen_awaitable next() {
+    [[nodiscard]] gen_awaitable next() {
         return {m_handle};
+    }
+
+    bool done() const noexcept {
+        return m_handle.done();
     }
 
     explicit operator bool() const noexcept {
