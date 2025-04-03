@@ -119,7 +119,7 @@ struct [[nodiscard]] coro {
         }
     }
 
-    handle take_handle() noexcept {
+    [[nodiscard]] handle take_handle() noexcept {
         return std::exchange(m_handle, nullptr);
     }
 
