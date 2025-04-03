@@ -17,7 +17,7 @@ T co_execute(coro<T> c) {
     context ctx;
     context_work_guard guard(ctx);
     co_spawn(ctx, [&]() -> coro<void> {
-        result = co_await coro<T>::result_awaitable(c.take_handle());
+        result = co_await typename coro<T>::result_awaitable(c.take_handle());
         guard.reset();
     }());
     ctx.run();
