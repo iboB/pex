@@ -156,6 +156,10 @@ struct [[nodiscard]] coro {
         }
     };
 
+    throwing_awaitable operator co_await() {
+        return { m_handle };
+    }
+
     struct result_awaitable : public basic_awaitable {
         using basic_awaitable::basic_awaitable;
         result_type await_resume() noexcept {
@@ -163,7 +167,7 @@ struct [[nodiscard]] coro {
         }
     };
 
-    throwing_awaitable operator co_await() {
+    result_awaitable safe_result() {
         return {m_handle};
     }
 
