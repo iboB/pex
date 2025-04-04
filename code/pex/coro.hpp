@@ -10,9 +10,10 @@
 
 namespace pex {
 
-namespace impl {
 template <typename T>
-using result_type = itlib::expected<T, std::exception_ptr>;
+using coro_result = itlib::expected<T, std::exception_ptr>;
+
+namespace impl {
 
 template <typename T, typename Self>
 struct ret_promise_helper {
@@ -51,16 +52,17 @@ struct opt_transfer {
 template <typename Ret, typename Gen = std::nullptr_t>
 struct [[nodiscard]] coro {
     using return_type = Ret;
+    using gen_type = Gen;
 
     struct promise_type;
-    using handle = std::coroutine_handle<promise_type>;
+    using handle_type = std::coroutine_handle<promise_type>;
 
-    using result_type = impl::result_type<Ret>;
-    using gen_type = itlib::eoptional<Gen>;
+    using result_type = coro_result<Ret>;
+    using gen_result_type = itlib::eoptional<Gen>;
 
     struct promise_type : impl::ret_promise_helper<Ret, promise_type> {
         coro get_return_object() noexcept {
-            return coro{handle::from_promise(*this)};
+            return coro{handle_type::from_promise(*this)};
         }
 
         std::suspend_always initial_suspend() noexcept { return {}; }
@@ -101,7 +103,7 @@ struct [[nodiscard]] coro {
         // point to the result in the awaitable which is on the stack
 
         result_type* m_result = nullptr; // null if this is the top coroutine
-        gen_type* m_generated = nullptr; // null if not awaiting a generation
+        gen_result_type* m_generated = nullptr; // null if not awaiting a generation
     };
 
     coro() noexcept = default;
@@ -119,14 +121,14 @@ struct [[nodiscard]] coro {
         }
     }
 
-    [[nodiscard]] handle take_handle() noexcept {
+    [[nodiscard]] handle_type take_handle() noexcept {
         return std::exchange(m_handle, nullptr);
     }
 
     struct basic_awaitable {
-        handle hcoro;
+        handle_type hcoro;
 
-        basic_awaitable(handle h) noexcept : hcoro(h) {}
+        basic_awaitable(handle_type h) noexcept : hcoro(h) {}
 
         // instead of making optional of expected, we can use the value error=nullptr to indicate that
         // the result is empty (hacky, but works and saves indirections)
@@ -157,7 +159,7 @@ struct [[nodiscard]] coro {
     };
 
     throwing_awaitable operator co_await() {
-        return { m_handle };
+        return {m_handle};
     }
 
     struct result_awaitable : public basic_awaitable {
@@ -172,11 +174,11 @@ struct [[nodiscard]] coro {
     }
 
     struct gen_awaitable {
-        handle hcoro;
-        gen_type gen = itlib::unexpected();
+        handle_type hcoro;
+        gen_result_type gen = itlib::unexpected();
         result_type result = itlib::unexpected();
 
-        gen_awaitable(handle h) noexcept : hcoro(h) {}
+        gen_awaitable(handle_type h) noexcept : hcoro(h) {}
 
         bool await_ready() const noexcept { return false; }
 
@@ -220,8 +222,8 @@ struct [[nodiscard]] coro {
     }
 
 private:
-    handle m_handle;
-    coro(handle h) noexcept : m_handle(h) {}
+    handle_type m_handle;
+    coro(handle_type h) noexcept : m_handle(h) {}
 };
 
 // awaitable to get the coroutine's executor from the coroutine itself
