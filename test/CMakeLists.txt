@@ -52,7 +52,7 @@ macro(pex_test test)
     pex_cxx_test(${test} t-${test}.cpp)
 endmacro()
 
-pex_test(multi_thread_runner)
+pex_test(thread_runner)
 pex_test(coro)
 pex_test(generator)
 pex_cxx_test(coro-stack t-coro-stack.cpp LIBRARIES b_stacktrace::b_stacktrace)

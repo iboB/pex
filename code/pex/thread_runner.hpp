@@ -7,13 +7,13 @@
 #include <vector>
 #include <cassert>
 
-// run an asio-like context in multiple threads
+// run an asio-like context in one or more threads
 
 namespace pex {
-class multi_thread_runner {
+class thread_runner {
     std::vector<std::thread> m_threads; // would use jthread, but apple clang still doesn't support them
 public:
-    multi_thread_runner() = default;
+    thread_runner() = default;
 
     template <typename Ctx>
     void start(Ctx& ctx, size_t n, std::string_view name = {}) {
@@ -47,11 +47,11 @@ public:
     }
 
     template <typename Ctx>
-    multi_thread_runner(Ctx& ctx, size_t n, std::string_view name = {}) {
+    thread_runner(Ctx& ctx, size_t n, std::string_view name = {}) {
         start(ctx, n, name);
     }
 
-    ~multi_thread_runner() {
+    ~thread_runner() {
         join();
     }
 
