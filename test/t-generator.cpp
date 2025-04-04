@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: MIT
 //
 #include <pex/co_for.hpp>
-#include <pex/context.hpp>
-#include <pex/co_spawn.hpp>
+#include <pex/co_execute.hpp>
 #include <doctest/doctest.h>
+#include <span>
+#include <vector>
+#include <string>
 
 using namespace pex;
 
@@ -68,12 +70,9 @@ coro<void> test_simple() {
 }
 
 TEST_CASE("simple") {
-    context ctx;
-    co_spawn(ctx, test_simple());
-    ctx.run();
+    co_execute(test_simple());
 }
 
-/*
 template <typename T>
 generator<T&> ref_gen(std::span<T> vals) {
     for (T& v : vals) {
@@ -81,72 +80,30 @@ generator<T&> ref_gen(std::span<T> vals) {
     }
 }
 
-TEST_CASE("ref") {
+pex::coro<void> test_ref() {
     std::vector<int> ints = { 1, 2, 3, 4, 5 };
-    auto g = ref_gen(std::span(ints));
-    for (int& i : g) {
-        i += 10;
+    co_for(i, ref_gen(std::span(ints))) {
+        *i += 10;
     }
     CHECK(ints == std::vector<int>{11, 12, 13, 14, 15});
 
     auto cg = ref_gen(std::span<const int>(ints));
-    const int& a = *cg.next();
-    const int& b = *cg.next();
-    for (const int& i : cg) {
-        CHECK(i > 12);
-        CHECK(i < 16);
+    const int& a = *co_await cg.next();
+    const int& b = *co_await cg.next();
+    auto cgi = co_await make_coro_iterator(std::move(cg));
+    for (; !cgi.done(); co_await cgi.next()) {
+        CHECK(*cgi > 12);
+        CHECK(*cgi < 16);
     }
-    CHECK(cg.done());
+    CHECK(cgi.done());
     CHECK(a == 11);
     CHECK(&a == ints.data());
     CHECK(b == 12);
     CHECK(&b == ints.data() + 1);
 }
 
-struct value : doctest::util::lifetime_counter<value>
-{
-    value() = default;
-    explicit value(int i) : val(i) {}
-    int val = 0;
-};
-
-generator<value> value_range(int begin, int end) {
-    for (int i = begin; i < end; ++i) {
-        co_yield value(i);
-    }
-}
-
-TEST_CASE("lifetime") {
-    doctest::util::lifetime_counter_sentry lcsentry(value::root_lifetime_stats());
-
-    int i = 0;
-    {
-        value::lifetime_stats ls;
-
-        auto r = value_range(0, 5);
-        for (value v : r) {
-            CHECK(v.val == i);
-            ++i;
-        }
-        CHECK(i == 5);
-
-        CHECK(ls.living == 0);
-        CHECK(ls.copies == 5);
-        CHECK(ls.m_ctr == 5);
-    }
-
-    {
-        value::lifetime_stats ls;
-
-        auto r = value_range(0, 3);
-        auto v1 = r.next();
-        auto v2 = r.next();
-        auto v3 = r.next();
-        auto vend = r.next();
-        CHECK(ls.living == 3);
-        CHECK(ls.copies == 0);
-        CHECK(ls.m_ctr == 6);
-    }
+TEST_CASE("ref") {
+    co_execute(test_ref());
 }
 
 struct non_copyable {
@@ -164,15 +121,17 @@ generator<non_copyable> non_copyable_range(int begin, int end) {
     }
 }
 
-TEST_CASE("yield non copyable") {
-    auto gen = non_copyable_range(10, 15);
-    std::vector<std::string> values;
+coro<void> ync_test() {
     int i = 10;
-    for (auto mi = std::make_move_iterator(gen.begin()); mi.base() != gen.end(); ++mi) {
-        auto elem = *mi;
+    co_for(mi, non_copyable_range(10, 15)) {
+        auto elem = std::move(*mi);
         CHECK(elem.value == std::to_string(i));
         ++i;
     }
+}
+
+TEST_CASE("yield non copyable") {
+    co_execute(ync_test());
 }
 
 generator<std::string, int> yield_strings(int begin, int end) {
@@ -182,27 +141,33 @@ generator<std::string, int> yield_strings(int begin, int end) {
     co_return end - begin;
 }
 
-TEST_CASE("return iter") {
-    auto gen = yield_strings(10, 15);
+coro<void> return_iter_test() {
+    auto gen = co_await make_coro_iterator(yield_strings(10, 15));
     std::vector<std::string> values;
     int i = 10;
-    for (auto s : gen) {
-        CHECK(s == std::to_string(i));
+    for (; !gen.done(); co_await gen.next()) {
+        CHECK(*gen == std::to_string(i));
         ++i;
     }
     CHECK(i == 15);
     CHECK(gen.rval() == 5);
 }
 
-TEST_CASE("return next") {
-    auto gen = yield_strings(10, 13);
-    CHECK(*gen.next() == "10");
-    CHECK(*gen.next() == "11");
-    CHECK(*gen.next() == "12");
-    CHECK_FALSE(gen.next().has_value());
-    CHECK(gen.rval() == 3);
-    CHECK(gen.done());
-    CHECK(gen.rval() == 3);
+TEST_CASE("return iter") {
+    co_execute(return_iter_test());
 }
 
-*/
+coro<void> return_next_test() {
+    auto gen = yield_strings(10, 13);
+    CHECK(*co_await gen.next() == "10");
+    CHECK(*co_await gen.next() == "11");
+    CHECK(*co_await gen.next() == "12");
+    auto last = co_await gen.next();
+    CHECK_FALSE(last);
+    CHECK(last.error() == 3);
+    CHECK(gen.done());
+}
+
+TEST_CASE("return next") {
+    co_execute(return_next_test());
+}
