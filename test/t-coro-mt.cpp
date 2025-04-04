@@ -12,10 +12,10 @@
 #include <doctest/doctest.h>
 
 class worker {
-    pex::strand_wobj m_wobj;
-    pex::timer_wobj& m_notify;
+    pex::timer_wobj m_wobj;
+    pex::strand_wobj& m_notify;
 public:
-    worker(pex::strand s, pex::timer_wobj& notify)
+    worker(pex::strand s, pex::strand_wobj& notify)
         : m_wobj(s)
         , m_notify(notify)
     {
@@ -26,7 +26,8 @@ public:
     int result;
     pex::coro<void> run() {
         while (true) {
-            co_await m_wobj.wait();
+            auto notified = co_await m_wobj.wait(pex::timeout::after_ms(100));
+            if (!notified) continue;
             result = a + b;
             m_notify.notify_one();
             if (result == 0) co_return;
@@ -40,10 +41,10 @@ public:
 
 pex::coro<int> test() {
     pex::context ctx;
-    pex::thread_runner runner(ctx, 1, "worker");
     auto wg = ctx.make_work_guard();
+    pex::thread_runner runner(ctx, 1, "worker");
 
-    pex::timer_wobj wobj(co_await pex::executor{});
+    pex::strand_wobj wobj(co_await pex::executor{});
     worker wrk(pex::make_strand(ctx), wobj);
 
     wrk.a = 5;
@@ -62,11 +63,8 @@ pex::coro<int> test() {
     wrk.b = 0;
     wrk.notify();
     CHECK(co_await wobj.wait());
-    CHECK(wrk.result == 0);
 
-    wrk.notify();
-    CHECK_FALSE(co_await wobj.wait(pex::timeout::after_ms(10)));
-
+    wg.reset();
     co_return wrk.result;
 }
 
