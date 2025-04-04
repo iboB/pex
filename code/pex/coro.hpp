@@ -191,7 +191,7 @@ struct [[nodiscard]] coro {
             return hcoro;
         }
 
-        itlib::expected<Gen, Ret> await_resume() {
+        itlib::expected<Gen, Ret> await_resume() noexcept(false) {
             if (gen) {
                 return std::move(gen).value();
             }
